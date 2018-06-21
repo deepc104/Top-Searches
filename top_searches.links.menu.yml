@@ -1,0 +1,6 @@
+top_searches.topsearches:
+    title: Top Searches
+    description: 'Manage Top Search configuration'
+    route_name: system.top_searches
+    parent: system.admin_config_search
+    weight: -10

@@ -1,0 +1,8 @@
+datatable:
+   version: 1.x
+   css:
+        theme:
+            resources/css/jquery.dataTables.min.css: {}
+   js:
+        resources/js/jquery.dataTables.min.js: {}
+        resources/js/custom.js: {}

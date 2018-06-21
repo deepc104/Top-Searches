@@ -1,0 +1,103 @@
+<?php 
+/*
+ * This file is use to implement hooks.
+ */
+use Drupal\top_searches\TopSearchesModel;
+use Drupal\Component\Utility\Unicode;
+use Drupal\Core\Form\FormStateInterface;
+use Symfony\Component\HttpFoundation\Request;
+
+/**
+ * Registering theming functions
+ */
+function top_searches_theme() {
+  return [
+    'top_searches_block' => [
+      'variables' => ['keys' => [], 'show_counts' => NULL,],
+      'template' => 'block--top-searches',
+     ]
+  ];
+}
+
+function theme_top_searches_block($variables) {
+  $config = $this->config('system.topsearches');
+  $show_counters = $config->get('top_searches_show_counters');
+  foreach($variables['top_searches'] as $value){
+    $items['items'][] = l($value['ts_q'], 'search/node/' . $value['ts_q']) . ($show_counters ? ' (' . $value['ts_counter']    . ')' : '');
+  }
+  return theme('item_list', $items);
+}
+
+function top_searches_form_alter(&$form, FormStateInterface $form_state, $form_id) {
+  // Only count node searches
+  if (isset($form['module']['#value']) && $form['module']['#value'] != 'node') return;
+
+   if($form_id == 'search_block_form'){
+       $form['#submit'][] = 'top_searches_catch_search_keys';
+   }elseif($form_id == 'search_form'){
+      $form['#method'] = 'GET';
+      //$form['#attributes']['keys'] = \Drupal::request()->query->get('keys');
+      $form['#submit'][] = top_searches_catch_search_keys($form, $form_state);
+   }
+
+}
+
+function top_searches_catch_search_keys(&$form, FormStateInterface $form_state) {
+  $keys = \Drupal::request()->query->get('keys');
+
+  // Send keys to top_searches hook
+  if ($keys) {
+    $valid = _top_searches_search_valid_phrase($keys);
+    if ($valid) {
+      top_searches_top_searches($keys);
+    }
+  }
+}
+
+/**
+ * Verify the keys contain at least one valid word
+ * @return True on valid phrase, FALSE on non-valid
+ */
+function _top_searches_search_valid_phrase($keys) {
+  // Check for minimum search word size, according to the site wide search configuration:
+  $min = 3;
+  $words = explode(' ', $keys);
+  $pass = FALSE;
+  foreach ($words as $word) {
+    _search_index_truncate($word);
+    // We need at least one word with minimal length, for the whole search phrase to be valid.
+    if (Unicode::strlen($word) >= $min) {
+      $pass = TRUE;
+      break;
+    }
+  }
+  return $pass;
+}
+
+/**
+ * Hook top_searches.
+ * Modules may use this hook to add their search queries. 
+ * They can later theme the results, to alter the url of the search phrases, to point elsewhere than "search/node/*"
+ *
+ * @param $keys
+ *    Search phrases to be registered by top_searches.
+ */
+function top_searches_top_searches($keys = NULL) {
+  if (!is_string($keys)) return;
+  else top_searches_process_keys($keys);
+}
+
+function top_searches_process_keys($keys) {
+  // Beautify the search phrase
+  $keys = preg_replace("/[' ']{2,}/", ' ', ucwords(strtolower(trim($keys))));
+
+  // Search the DB for existing keys:
+  $results =  TopSearchesModel::top_searches_key_exists($keys);
+
+  if (isset($results[0]) && $results[0]->qid) {
+   $result1 =  TopSearchesModel::top_searches_update_counter($results[0]->qid);
+  }
+  else {
+    $result2 = TopSearchesModel::top_searches_add_keys($keys);
+  }
+}

@@ -1,0 +1,9 @@
+name: Top Searches
+description: Provides a list of top search phrase
+core : 8.x
+type: module
+package: Custom
+
+dependencies:
+  - drupal:block
+  - drupal:search

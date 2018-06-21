@@ -1,0 +1,15 @@
+system.top_searches:
+  path: '/admin/config/search/top_searches'
+  defaults:
+    _form: '\Drupal\top_searches\Form\TopSearchesAdminForm'
+    _title: 'Top Searches module settings'
+  requirements:
+    _permission: 'administer site configuration'
+
+system.top_searches_delete:
+  path: '/admin/config/search/top_searches/clear'
+  defaults:
+    _form: '\Drupal\top_searches\Form\TopSearchesDeleteForm'
+    _title: 'Top Searches module settings'
+  requirements:
+    _permission: 'administer site configuration'

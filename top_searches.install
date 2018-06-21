@@ -1,0 +1,63 @@
+<?php
+
+/*
+* Implements hook_install().  
+* Setting default values to varibales used in Top Searches module 
+*/
+function top_searches_install() {
+  \Drupal::configFactory()->getEditable('system.topsearches')->set('top_searches_show_counters', 0)->save();
+  \Drupal::configFactory()->getEditable('system.topsearches')->set('top_searches_block_items', 50)->save();
+}
+
+
+/**
+ * Implements hook_uninstall().
+ */
+function top_searches_uninstall() {
+  \Drupal::configFactory()->getEditable('system.topsearches')->clear('top_searches_show_counters')->save();
+  \Drupal::configFactory()->getEditable('system.topsearches')->clear('top_searches_block_items')->save();
+} 
+
+/**
+ * Implements hook_schema().
+ *
+ * Will create the database needed to store the banner connections
+ */
+function top_searches_schema() {
+  $schema['top_searches'] = [
+    'fields' => [
+      'qid' => [
+        'type' => 'serial',
+        'length' => 11,
+        'not null' => TRUE,
+        'unsigned' => TRUE,
+      ],
+      'q' => [
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'default' => ''
+      ],
+      'counter' => [
+        'type' => 'int',
+        'length' => 11,
+        'not null' => FALSE,
+        'default' => 0,
+        'unsigned' => TRUE
+      ],
+      'display_status' => [
+          'type' => 'int',
+          'length' => 11,
+          'not null' => FALSE,
+          'default' => 1,
+          'unsigned' => TRUE,
+          'comment' => '1=Show and 0=Hide'
+      ]
+    ],
+    'unique keys' => [
+      'q' => ['q']
+    ],
+    'primary key' => ['qid']
+  ];
+  return $schema;
+}
