@@ -1,0 +1,21 @@
+{#
+/**
+ * @file
+ * Top Search Block Twig.
+ */
+#}
+{% set count = '' %}
+<div class="">
+<ul id="top-search-list" class="search-list" >
+{% for k, v in keys %}
+	<li class="top-search-item" >
+	   {%  set base_url = url('<front>')  %}
+	   {% if show_counts %} 
+	     {% set count = ' ('~ v.count ~ ')'%}
+	   {% endif %}
+	   <a href="{{  base_url }}search/node?keys={{ v.key }}">{{ v.key }} {{ count }}
+	  </a>
+	</li>
+{% endfor %}
+</ul>
+</div>
